@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using auAPI.Helpers;
 using auAPI.Models;
 
 namespace auAPI.Controllers
@@ -10,89 +11,64 @@ namespace auAPI.Controllers
     public class APIController : Controller
     {
         // GET: API
-        public JsonResult GetAllPersons()
+        public JsonResult AllPersons()
         {
-            List<Person> personsList = new List<Person>();
-            auDataDataContext dc = new auDataDataContext();
-            var data = from p in dc.Persons
-                       select p;
-            foreach (var item in data)
+            return Json(LinqHelper.GetAll(), JsonRequestBehavior.AllowGet);
+        }
+        public JsonResult AllNames()
+        {
+            return Json(LinqHelper.GetAllName(), JsonRequestBehavior.AllowGet);
+        }
+        public JsonResult PersonByName()
+        {
+            try
             {
-                personsList.Add(new Person(item.id, item.FirstName, item.LastName, 12));
+                return Json(LinqHelper.GetPersonByName(RouteData.Values["Id"].ToString()), JsonRequestBehavior.AllowGet);
             }
-            return Json(personsList, JsonRequestBehavior.AllowGet);
-        }
-        public JsonResult GetAllName()
-        {
-            List<string> personsList = new List<string>();
-            auDataDataContext dc = new auDataDataContext();
-            var data = from p in dc.Persons
-                       select p;
-            foreach (var item in data)
+            catch 
             {
-                personsList.Add(item.FirstName);
+                return Json(new Fault("type", "Fault", "fault"), JsonRequestBehavior.AllowGet);
             }
-            return Json(personsList, JsonRequestBehavior.AllowGet);
         }
-        public JsonResult GetByName()
+        public JsonResult PersonById()
         {
-            List<Person> personsList = new List<Person>();
-            auDataDataContext dc = new auDataDataContext();
-            var data = from p in dc.Persons
-                       where p.FirstName == RouteData.Values["Id"].ToString()
-                       select p;
-            foreach (var item in data)
+            try
             {
-               personsList.Add(new Person(item.id, item.FirstName, item.LastName, 12));
+                return Json(LinqHelper.GetPersonById(RouteData.Values["Id"].ToString()), JsonRequestBehavior.AllowGet);
             }
-            return Json(personsList, JsonRequestBehavior.AllowGet);
-        }
-        public JsonResult GetById()
-        {
-            List<Person> personsList = new List<Person>();
-            auDataDataContext dc = new auDataDataContext();
-            var data = from p in dc.Persons
-                       where p.id == Convert.ToInt32(RouteData.Values["Id"])
-                       select p;
-            foreach (var item in data)
+            catch
             {
-                personsList.Add(new Person(item.id, item.FirstName, item.LastName, 12));
+                return Json(new Fault("type", "Fault", "fault"), JsonRequestBehavior.AllowGet);
             }
-            return Json(personsList, JsonRequestBehavior.AllowGet);
         }
-        public JsonResult DeleteByName()
-        {
-           auDataDataContext dc = new auDataDataContext();
-           var data = from p in dc.Persons
-                   where p.FirstName == RouteData.Values["Id"].ToString()
-                   select p;
-            dc.Persons.DeleteAllOnSubmit(data);
-            dc.SubmitChanges();
-
-
-            data = from p in dc.Persons
-                   select p;
-
-            var d = dc.Persons.OrderByDescending(u => u.id).FirstOrDefault();
-
-            dc.ExecuteCommand($"DBCC CHECKIDENT('Persons', RESEED, {d.id});");
-            return Json(RouteData.Values["Id"], JsonRequestBehavior.AllowGet);
-        }
-
 
         //Post: API
         [HttpPost]
         public JsonResult AddPerson(Person person)
         {
-            auDataDataContext dc = new auDataDataContext();
-            Persons p = new Persons();
-            p.FirstName = person.FirstName;
-            p.LastName = person.LastName;
-            p.Age = person.Age;
-            dc.Persons.InsertOnSubmit(p);
-            dc.SubmitChanges();
+            try
+            {
+                return Json(LinqHelper.PostNewPerson(person), JsonRequestBehavior.AllowGet);
+            }
+            catch
+            {
+                return Json(new Fault("type", "Fault", "fault"), JsonRequestBehavior.AllowGet);
+            }
+           
+        }
 
-            return Json(p, JsonRequestBehavior.AllowGet);
+        //DELETE: API
+        [HttpDelete]
+        public JsonResult DeletePersonByName()
+        {
+            try
+            {
+                return Json(LinqHelper.DeletePersonByName(RouteData.Values["Id"].ToString()), JsonRequestBehavior.AllowGet);
+            }
+            catch
+            {
+                return Json(new Fault("type", "Fault", "fault"), JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }

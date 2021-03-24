@@ -20,7 +20,6 @@ namespace auAPI.Models
             this.FirstName = firstname;
             this.LastName = lastname;
             this.Age = age;
-
         }
         
         //FOR POST
